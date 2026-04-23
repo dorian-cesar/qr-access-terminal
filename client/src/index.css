@@ -40,7 +40,20 @@
   }
 
   .input-field {
-    @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none transition-all focus:border-secondary focus:bg-white/10 text-white placeholder:text-gray-500;
+    @apply w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none transition-all focus:border-secondary focus:bg-white/10 text-white placeholder:text-gray-500 focus:ring-0;
+  }
+
+  select.input-field {
+    @apply accent-secondary cursor-pointer;
+    color-scheme: dark;
+  }
+
+  select.input-field option {
+    @apply bg-dark text-white;
+  }
+
+  select.input-field option:checked {
+    @apply bg-secondary text-black;
   }
 }
 

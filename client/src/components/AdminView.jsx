@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Edit2
+  Edit2,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -32,6 +33,7 @@ const AdminView = () => {
   const [userForm, setUserForm] = useState({ name: '', rut: '', password: '', companyId: '', role: 'user' });
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
+  const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -303,19 +305,71 @@ const AdminView = () => {
                           required={!isEditing} 
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-2 relative">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Empresa</label>
-                        <select 
-                          className="input-field appearance-none cursor-pointer"
-                          value={userForm.companyId}
-                          onChange={e => setUserForm({...userForm, companyId: e.target.value})}
-                          required
-                        >
-                          <option value="">Seleccionar Empresa</option>
-                          {companies.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                          ))}
-                        </select>
+                        
+                        {/* Custom Dropdown */}
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
+                            className="input-field flex justify-between items-center text-left"
+                          >
+                            <span className={userForm.companyId ? "text-white" : "text-gray-500"}>
+                              {userForm.companyId 
+                                ? companies.find(c => c.id === parseInt(userForm.companyId))?.name || 'Seleccionar Empresa'
+                                : 'Seleccionar Empresa'}
+                            </span>
+                            <ChevronDown size={18} className={`transition-transform duration-300 ${isCompanyDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          <AnimatePresence>
+                            {isCompanyDropdownOpen && (
+                              <>
+                                {/* Overlay to close */}
+                                <div className="fixed inset-0 z-40" onClick={() => setIsCompanyDropdownOpen(false)} />
+                                
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                  className="absolute top-full left-0 right-0 mt-2 bg-dark-card border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                                >
+                                  <div className="max-h-60 overflow-y-auto py-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setUserForm({...userForm, companyId: ''});
+                                        setIsCompanyDropdownOpen(false);
+                                      }}
+                                      className="w-full px-5 py-3 text-left text-sm text-gray-400 hover:bg-secondary/10 hover:text-secondary transition-colors"
+                                    >
+                                      Seleccionar Empresa
+                                    </button>
+                                    {companies.map(c => (
+                                      <button
+                                        key={c.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setUserForm({...userForm, companyId: c.id.toString()});
+                                          setIsCompanyDropdownOpen(false);
+                                        }}
+                                        className={`
+                                          w-full px-5 py-3 text-left text-sm transition-all
+                                          ${userForm.companyId === c.id.toString() 
+                                            ? 'bg-secondary text-black font-bold' 
+                                            : 'text-gray-300 hover:bg-secondary/10 hover:text-secondary'}
+                                        `}
+                                      >
+                                        {c.name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </div>
                       <button type="submit" className="btn-primary w-full py-4">
                         {isEditing ? 'Actualizar Usuario' : 'Enrolar Trabajador'}
