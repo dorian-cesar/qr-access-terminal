@@ -35,6 +35,22 @@ exports.createUser = async (req, res) => {
   }
 };
 
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password, ...userData } = req.body;
+    
+    if (password) {
+      userData.password = await bcrypt.hash(password, 10);
+    }
+
+    await User.update(userData, { where: { id } });
+    res.json({ message: 'User updated successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 // QR Token
 exports.getQRToken = async (req, res) => {
   const token = await Config.findByPk('qr_master_token');

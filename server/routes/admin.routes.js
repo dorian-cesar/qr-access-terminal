@@ -10,6 +10,7 @@ router.post('/companies', adminController.createCompany);
 
 router.get('/users', adminController.getUsers);
 router.post('/users', adminController.createUser);
+router.put('/users/:id', adminController.updateUser);
 
 router.get('/qr-token', adminController.getQRToken);
 router.put('/qr-token', adminController.updateQRToken);

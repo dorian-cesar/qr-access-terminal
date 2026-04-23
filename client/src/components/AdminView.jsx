@@ -12,7 +12,8 @@ import {
   Search,
   Menu,
   X,
-  ShieldCheck
+  ShieldCheck,
+  Edit2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,6 +30,8 @@ const AdminView = () => {
   // Forms
   const [companyForm, setCompanyForm] = useState({ name: '', rut: '' });
   const [userForm, setUserForm] = useState({ name: '', rut: '', password: '', companyId: '', role: 'user' });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingUserId, setEditingUserId] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -58,13 +61,35 @@ const AdminView = () => {
     } catch (error) { alert(error.response?.data?.message || 'Error'); }
   };
 
-  const handleCreateUser = async (e) => {
+  const handleSubmitUser = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/api/admin/users`, userForm);
+      if (isEditing) {
+        await axios.put(`${API_BASE_URL}/api/admin/users/${editingUserId}`, userForm);
+        alert('Usuario actualizado');
+      } else {
+        await axios.post(`${API_BASE_URL}/api/admin/users`, userForm);
+        alert('Usuario creado');
+      }
       setUserForm({ name: '', rut: '', password: '', companyId: '', role: 'user' });
+      setIsEditing(false);
+      setEditingUserId(null);
       fetchData();
     } catch (error) { alert(error.response?.data?.message || 'Error'); }
+  };
+
+  const handleEditUser = (u) => {
+    setIsEditing(true);
+    setEditingUserId(u.id);
+    setUserForm({
+      name: u.name,
+      rut: u.rut,
+      password: '', // Leave empty unless changing
+      companyId: u.companyId,
+      role: u.role
+    });
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleUpdateQR = async () => {
@@ -241,8 +266,23 @@ const AdminView = () => {
               <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1">
                   <div className="glass-card p-6 md:p-8">
-                    <h3 className="text-lg font-bold mb-6 text-white">Nuevo Usuario</h3>
-                    <form onSubmit={handleCreateUser} className="space-y-5">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg font-bold text-white">
+                        {isEditing ? 'Editar Usuario' : 'Nuevo Usuario'}
+                      </h3>
+                      {isEditing && (
+                        <button 
+                          onClick={() => {
+                            setIsEditing(false);
+                            setUserForm({ name: '', rut: '', password: '', companyId: '', role: 'user' });
+                          }}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Cancelar Edición
+                        </button>
+                      )}
+                    </div>
+                    <form onSubmit={handleSubmitUser} className="space-y-5">
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Nombre Completo</label>
                         <input className="input-field" type="text" value={userForm.name} onChange={e => setUserForm({...userForm, name: e.target.value})} required />
@@ -252,8 +292,16 @@ const AdminView = () => {
                         <input className="input-field" type="text" value={userForm.rut} onChange={e => setUserForm({...userForm, rut: e.target.value})} required />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Password</label>
-                        <input className="input-field" type="password" value={userForm.password} onChange={e => setUserForm({...userForm, password: e.target.value})} required />
+                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">
+                          Password {isEditing && <span className="text-[10px] lowercase opacity-50">(dejar vacío para no cambiar)</span>}
+                        </label>
+                        <input 
+                          className="input-field" 
+                          type="password" 
+                          value={userForm.password} 
+                          onChange={e => setUserForm({...userForm, password: e.target.value})} 
+                          required={!isEditing} 
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Empresa</label>
@@ -269,7 +317,9 @@ const AdminView = () => {
                           ))}
                         </select>
                       </div>
-                      <button type="submit" className="btn-primary w-full py-4">Enrolar Trabajador</button>
+                      <button type="submit" className="btn-primary w-full py-4">
+                        {isEditing ? 'Actualizar Usuario' : 'Enrolar Trabajador'}
+                      </button>
                     </form>
                   </div>
                 </div>
@@ -284,6 +334,7 @@ const AdminView = () => {
                             <th className="p-6 text-xs font-bold text-gray-500 uppercase">Trabajador</th>
                             <th className="p-6 text-xs font-bold text-gray-500 uppercase">Empresa</th>
                             <th className="p-6 text-xs font-bold text-gray-500 uppercase">Rol</th>
+                            <th className="p-6 text-xs font-bold text-gray-500 uppercase text-center">Acciones</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -303,6 +354,15 @@ const AdminView = () => {
                                 `}>
                                   {u.role}
                                 </span>
+                              </td>
+                              <td className="p-6 text-center">
+                                <button 
+                                  onClick={() => handleEditUser(u)}
+                                  className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all"
+                                  title="Editar usuario"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
                               </td>
                             </tr>
                           ))}
