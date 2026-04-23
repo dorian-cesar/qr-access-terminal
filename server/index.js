@@ -27,7 +27,7 @@ async function startServer() {
     console.log('Database connected...');
 
     // Sync models
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log('Models synced...');
 
     // Seed Initial Admin and Config
