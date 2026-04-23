@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 const AdminView = () => {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('companies');
@@ -31,9 +33,9 @@ const AdminView = () => {
   const fetchData = async () => {
     try {
       const [compRes, userRes, qrRes] = await Promise.all([
-        axios.get('http://localhost:3001/api/admin/companies'),
-        axios.get('http://localhost:3001/api/admin/users'),
-        axios.get('http://localhost:3001/api/admin/qr-token')
+        axios.get(`${API_BASE_URL}/api/admin/companies`),
+        axios.get(`${API_BASE_URL}/api/admin/users`),
+        axios.get(`${API_BASE_URL}/api/admin/qr-token`)
       ]);
       setCompanies(compRes.data);
       setUsers(userRes.data);
@@ -50,7 +52,7 @@ const AdminView = () => {
   const handleCreateCompany = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3001/api/admin/companies', companyForm);
+      await axios.post(`${API_BASE_URL}/api/admin/companies`, companyForm);
       setCompanyForm({ name: '', rut: '' });
       fetchData();
     } catch (error) { alert(error.response?.data?.message || 'Error'); }
@@ -59,7 +61,7 @@ const AdminView = () => {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3001/api/admin/users', userForm);
+      await axios.post(`${API_BASE_URL}/api/admin/users`, userForm);
       setUserForm({ name: '', rut: '', password: '', companyId: '', role: 'user' });
       fetchData();
     } catch (error) { alert(error.response?.data?.message || 'Error'); }
@@ -67,7 +69,7 @@ const AdminView = () => {
 
   const handleUpdateQR = async () => {
     try {
-      await axios.put('http://localhost:3001/api/admin/qr-token', { value: qrToken });
+      await axios.put(`${API_BASE_URL}/api/admin/qr-token`, { value: qrToken });
       alert('Token de QR actualizado');
     } catch (error) { alert('Error actualizando token'); }
   };

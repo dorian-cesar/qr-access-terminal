@@ -3,6 +3,8 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (rut, password) => {
     try {
-      const res = await axios.post('http://localhost:3001/api/auth/login', { rut, password });
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { rut, password });
       const { token, user: userData } = res.data;
 
       localStorage.setItem('qr_token', token);

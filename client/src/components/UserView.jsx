@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { LogOut, RefreshCw, User as UserIcon, Building, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 const UserView = () => {
   const { user, logout } = useAuth();
   const [qrValue, setQrValue] = useState('');
@@ -13,7 +15,7 @@ const UserView = () => {
   const fetchQR = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3001/api/user/qr-data');
+      const res = await axios.get(`${API_BASE_URL}/api/user/qr-data`);
       setQrValue(res.data.qrValue);
     } catch (error) {
       console.error('Error fetching QR data', error);
