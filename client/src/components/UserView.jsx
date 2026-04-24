@@ -44,8 +44,8 @@ const UserView = () => {
             </div>
           </div>
         </div>
-        <button 
-          onClick={logout} 
+        <button
+          onClick={logout}
           className="p-3 rounded-xl bg-white/5 text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300"
         >
           <LogOut size={22} />
@@ -54,7 +54,7 @@ const UserView = () => {
 
       {/* QR Card Container */}
       <main className="flex-1 flex flex-col items-center justify-center">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="w-full max-w-md glass-card overflow-hidden"
@@ -82,9 +82,9 @@ const UserView = () => {
                   </div>
                 ) : (
                   <div className="relative">
-                    <QRCodeSVG 
-                      value={qrValue} 
-                      size={224} 
+                    <QRCodeSVG
+                      value={qrValue}
+                      size={224}
                       level="H"
                       fgColor="#000000"
                     />
@@ -109,7 +109,7 @@ const UserView = () => {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={fetchQR}
                 className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl border-2 border-dashed border-white/10 text-gray-400 hover:border-secondary/30 hover:text-secondary transition-all"
               >
@@ -127,7 +127,7 @@ const UserView = () => {
           <span>Escanea para abrir el torniquete</span>
           <ArrowRight size={14} />
         </div>
-        <p className="text-[10px] text-gray-600 uppercase tracking-widest">© 2026 Gestión de Terminales S.A.</p>
+        <p className="text-[10px] text-gray-600 uppercase tracking-widest">© 2026 Desarrollado por Wit.la</p>
       </footer>
     </div>
   );
