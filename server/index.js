@@ -26,8 +26,8 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Database connected...');
 
-    // Sync models
-    await sequelize.sync();
+    // Sync models (alter: true adds new columns without dropping data)
+    await sequelize.sync({ alter: true });
     console.log('Models synced...');
 
     // Seed Initial Admin and Config

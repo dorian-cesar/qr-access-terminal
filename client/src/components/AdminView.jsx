@@ -14,7 +14,9 @@ import {
   X,
   ShieldCheck,
   Edit2,
-  ChevronDown
+  ChevronDown,
+  Power,
+  PowerOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,6 +36,8 @@ const AdminView = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [showDisabledOnly, setShowDisabledOnly] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -68,10 +72,8 @@ const AdminView = () => {
     try {
       if (isEditing) {
         await axios.put(`${API_BASE_URL}/api/admin/users/${editingUserId}`, userForm);
-        alert('Usuario actualizado');
       } else {
         await axios.post(`${API_BASE_URL}/api/admin/users`, userForm);
-        alert('Usuario creado');
       }
       setUserForm({ name: '', rut: '', password: '', companyId: '', role: 'user' });
       setIsEditing(false);
@@ -100,6 +102,24 @@ const AdminView = () => {
       alert('Token de QR actualizado');
     } catch (error) { alert('Error actualizando token'); }
   };
+
+  const handleToggleUser = async (u) => {
+    try {
+      await axios.patch(`${API_BASE_URL}/api/admin/users/${u.id}/toggle`);
+      fetchData();
+    } catch (error) { alert('Error al cambiar estado del usuario'); }
+  };
+
+  const disabledCount = users.filter(u => u.isActive === false).length;
+
+  const filteredUsers = users.filter(u => {
+    const matchesSearch =
+      u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+      u.rut.toLowerCase().includes(userSearch.toLowerCase()) ||
+      (u.Company?.name || '').toLowerCase().includes(userSearch.toLowerCase());
+    const matchesStatus = showDisabledOnly ? u.isActive === false : true;
+    return matchesSearch && matchesStatus;
+  });
 
   const menuItems = [
     { id: 'companies', label: 'Empresas', icon: Building2 },
@@ -379,11 +399,38 @@ const AdminView = () => {
                 </div>
 
                 <div className="lg:col-span-2 space-y-4">
-                  <h3 className="text-gray-500 uppercase text-xs font-black tracking-[0.2em] px-2">Nómina de Personal</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 className="text-gray-500 uppercase text-xs font-black tracking-[0.2em] px-2 flex items-center gap-2">
+                      Nómina de Personal <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => setShowDisabledOnly(!showDisabledOnly)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                          showDisabledOnly
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-white/5 text-gray-400 border border-white/10 hover:border-red-500/30 hover:text-red-400'
+                        }`}
+                      >
+                        <PowerOff size={13} />
+                        {showDisabledOnly ? 'Ver todos' : `Deshabilitados${disabledCount > 0 ? ` (${disabledCount})` : ''}`}
+                      </button>
+                      <div className="relative group">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-secondary transition-colors" />
+                        <input
+                          type="text"
+                          placeholder="Buscar..."
+                          value={userSearch}
+                          onChange={e => setUserSearch(e.target.value)}
+                          className="input-field pl-10 text-sm w-44"
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <div className="overflow-hidden glass-card">
-                    <div className="overflow-x-auto">
+                    <div className="max-h-[480px] overflow-y-auto overflow-x-auto">
                       <table className="w-full text-left">
-                        <thead>
+                        <thead className="sticky top-0 z-10" style={{backgroundColor: 'rgba(22, 22, 29, 0.98)'}}>
                           <tr className="border-b border-white/5">
                             <th className="p-6 text-xs font-bold text-gray-500 uppercase">Trabajador</th>
                             <th className="p-6 text-xs font-bold text-gray-500 uppercase">Empresa</th>
@@ -392,10 +439,17 @@ const AdminView = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                          {users.map(u => (
-                            <tr key={u.id} className="hover:bg-white/5 transition-colors">
+                          {filteredUsers.map(u => (
+                            <tr
+                              key={u.id}
+                              className={`transition-colors ${
+                                u.isActive === false
+                                  ? 'bg-red-500/5 hover:bg-red-500/10'
+                                  : 'hover:bg-white/5'
+                              }`}
+                            >
                               <td className="p-6">
-                                <p className="font-bold text-white">{u.name}</p>
+                                <p className={`font-bold ${u.isActive === false ? 'text-red-400 line-through opacity-60' : 'text-white'}`}>{u.name}</p>
                                 <p className="text-xs text-gray-500">{u.rut}</p>
                               </td>
                               <td className="p-6">
@@ -409,23 +463,45 @@ const AdminView = () => {
                                   {u.role}
                                 </span>
                               </td>
-                              <td className="p-6 text-center">
-                                <button 
-                                  onClick={() => handleEditUser(u)}
-                                  className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all"
-                                  title="Editar usuario"
-                                >
-                                  <Edit2 size={16} />
-                                </button>
+                              <td className="p-6">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button 
+                                    onClick={() => handleEditUser(u)}
+                                    className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-primary hover:bg-primary/10 transition-all"
+                                    title="Editar usuario"
+                                  >
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleUser(u)}
+                                    className={`p-2 rounded-lg transition-all ${
+                                      u.isActive === false
+                                        ? 'bg-red-500/20 text-red-400 hover:bg-green-500/20 hover:text-green-400'
+                                        : 'bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400'
+                                    }`}
+                                    title={u.isActive === false ? 'Habilitar usuario' : 'Deshabilitar usuario'}
+                                  >
+                                    {u.isActive === false ? <Power size={16} /> : <PowerOff size={16} />}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
+                          {filteredUsers.length === 0 && (
+                            <tr>
+                              <td colSpan={4} className="p-10 text-center text-gray-600 text-sm">
+                                No se encontraron resultados para "{userSearch}"
+                              </td>
+                            </tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
                   </div>
-                </div>
-              </div>
+                </div>{/* end lg:col-span-2 */}
+              </div>{/* end grid */}
+
+
             </motion.div>
           )}
 

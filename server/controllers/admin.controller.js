@@ -51,6 +51,18 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+exports.toggleUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    await user.update({ isActive: !user.isActive });
+    res.json({ message: 'User status updated', isActive: user.isActive });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 // QR Token
 exports.getQRToken = async (req, res) => {
   const token = await Config.findByPk('qr_master_token');
