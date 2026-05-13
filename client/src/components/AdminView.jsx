@@ -105,7 +105,7 @@ const AdminView = () => {
 
   const handleToggleUser = async (u) => {
     try {
-      await axios.patch(`${API_BASE_URL}/api/admin/users/${u.id}/toggle`);
+      await axios.put(`${API_BASE_URL}/api/admin/users/${u.id}`, { isActive: u.isActive === false ? true : false });
       fetchData();
     } catch (error) { alert('Error al cambiar estado del usuario'); }
   };
@@ -408,8 +408,8 @@ const AdminView = () => {
                         onClick={() => setShowDisabledOnly(!showDisabledOnly)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
                           showDisabledOnly
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : 'bg-white/5 text-gray-400 border border-white/10 hover:border-red-500/30 hover:text-red-400'
+                            ? 'bg-white/5 text-gray-400 border border-white/10 hover:border-white/20'
+                            : 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
                         }`}
                       >
                         <PowerOff size={13} />
@@ -476,12 +476,12 @@ const AdminView = () => {
                                     onClick={() => handleToggleUser(u)}
                                     className={`p-2 rounded-lg transition-all ${
                                       u.isActive === false
-                                        ? 'bg-red-500/20 text-red-400 hover:bg-green-500/20 hover:text-green-400'
-                                        : 'bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400'
+                                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                        : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                                     }`}
                                     title={u.isActive === false ? 'Habilitar usuario' : 'Deshabilitar usuario'}
                                   >
-                                    {u.isActive === false ? <Power size={16} /> : <PowerOff size={16} />}
+                                    {u.isActive === false ? <PowerOff size={16} /> : <Power size={16} />}
                                   </button>
                                 </div>
                               </td>
