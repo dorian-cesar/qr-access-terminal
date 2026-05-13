@@ -26,8 +26,18 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('Database connected...');
 
-    // Sync models (alter: true adds new columns without dropping data)
-    await sequelize.sync({ alter: true });
+    // Manual migration: add isActive if it doesn't exist yet (safe to run multiple times)
+    try {
+      await sequelize.query(
+        'ALTER TABLE Users ADD COLUMN isActive TINYINT(1) NOT NULL DEFAULT 1'
+      );
+      console.log('Migration: isActive column added.');
+    } catch (e) {
+      // Column already exists — ignore
+    }
+
+    // Sync models
+    await sequelize.sync();
     console.log('Models synced...');
 
     // Seed Initial Admin and Config
