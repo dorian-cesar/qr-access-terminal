@@ -16,7 +16,8 @@ import {
   Edit2,
   ChevronDown,
   Power,
-  PowerOff
+  PowerOff,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,6 +39,7 @@ const AdminView = () => {
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
   const [userSearch, setUserSearch] = useState('');
   const [showDisabledOnly, setShowDisabledOnly] = useState(false);
+  const [togglingUserId, setTogglingUserId] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -105,9 +107,14 @@ const AdminView = () => {
 
   const handleToggleUser = async (u) => {
     try {
+      setTogglingUserId(u.id);
       await axios.put(`${API_BASE_URL}/api/admin/users/${u.id}`, { isActive: u.isActive === false ? true : false });
-      fetchData();
-    } catch (error) { alert('Error al cambiar estado del usuario'); }
+      await fetchData();
+    } catch (error) { 
+      alert('Error al cambiar estado del usuario'); 
+    } finally {
+      setTogglingUserId(null);
+    }
   };
 
   const disabledCount = users.filter(u => u.isActive === false).length;
@@ -474,14 +481,23 @@ const AdminView = () => {
                                   </button>
                                   <button
                                     onClick={() => handleToggleUser(u)}
+                                    disabled={togglingUserId === u.id}
                                     className={`p-2 rounded-lg transition-all ${
-                                      u.isActive === false
-                                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                        : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                                      togglingUserId === u.id 
+                                        ? 'bg-gray-500/20 text-gray-400 opacity-50 cursor-not-allowed'
+                                        : u.isActive === false
+                                          ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                          : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                                     }`}
                                     title={u.isActive === false ? 'Habilitar usuario' : 'Deshabilitar usuario'}
                                   >
-                                    {u.isActive === false ? <PowerOff size={16} /> : <Power size={16} />}
+                                    {togglingUserId === u.id ? (
+                                      <Loader2 size={16} className="animate-spin" />
+                                    ) : u.isActive === false ? (
+                                      <PowerOff size={16} />
+                                    ) : (
+                                      <Power size={16} />
+                                    )}
                                   </button>
                                 </div>
                               </td>
