@@ -36,21 +36,38 @@ async function startServer() {
       // Column already exists — ignore
     }
 
+    // Manual migration: update ENUM to support superadmin
+    try {
+      await sequelize.query(
+        "ALTER TABLE Users MODIFY COLUMN role ENUM('admin', 'user', 'superadmin') DEFAULT 'user'"
+      );
+      console.log('Migration: role ENUM updated.');
+    } catch (e) {
+      // Ignore if fails or already updated
+      console.log('Migration role ENUM notice:', e.message);
+    }
+
     // Sync models
     await sequelize.sync();
     console.log('Models synced...');
 
     // Seed Initial Admin and Config
-    const adminExists = await User.findOne({ where: { role: 'admin' } });
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      await User.create({
-        name: 'Super Admin',
-        rut: '1-1',
-        password: hashedPassword,
-        role: 'admin'
-      });
-      console.log('Default Admin created: 1-1 / admin123');
+    const superAdminExists = await User.findOne({ where: { role: 'superadmin' } });
+    if (!superAdminExists) {
+      const oneOne = await User.findOne({ where: { rut: '1-1' } });
+      if (oneOne) {
+        await oneOne.update({ role: 'superadmin' });
+        console.log('User 1-1 upgraded to Super Admin.');
+      } else {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        await User.create({
+          name: 'Super Admin',
+          rut: '1-1',
+          password: hashedPassword,
+          role: 'superadmin'
+        });
+        console.log('Default Super Admin created: 1-1 / admin123');
+      }
     }
 
     const qrConfig = await Config.findByPk('qr_master_token');

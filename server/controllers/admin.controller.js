@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Company = require('../models/Company');
 const Config = require('../models/Config');
 const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 
 // Companies
 exports.getCompanies = async (req, res) => {
@@ -20,7 +21,10 @@ exports.createCompany = async (req, res) => {
 
 // Users
 exports.getUsers = async (req, res) => {
-  const users = await User.findAll({ include: [Company] });
+  const users = await User.findAll({ 
+    where: { role: { [Op.ne]: 'superadmin' } },
+    include: [Company] 
+  });
   res.json(users);
 };
 

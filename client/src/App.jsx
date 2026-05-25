@@ -26,7 +26,7 @@ function App() {
     return <Login />;
   }
 
-  return user.role === 'admin' ? <AdminView /> : <UserView />;
+  return (user.role === 'admin' || user.role === 'superadmin') ? <AdminView /> : <UserView />;
 }
 
 export default App;
