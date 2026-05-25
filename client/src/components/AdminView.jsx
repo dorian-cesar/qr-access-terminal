@@ -17,7 +17,9 @@ import {
   ChevronDown,
   Power,
   PowerOff,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,6 +42,12 @@ const AdminView = () => {
   const [userSearch, setUserSearch] = useState('');
   const [showDisabledOnly, setShowDisabledOnly] = useState(false);
   const [togglingUserId, setTogglingUserId] = useState(null);
+  const [notification, setNotification] = useState(null);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const fetchData = async () => {
     try {
@@ -66,7 +74,8 @@ const AdminView = () => {
       await axios.post(`${API_BASE_URL}/api/admin/companies`, companyForm);
       setCompanyForm({ name: '', rut: '' });
       fetchData();
-    } catch (error) { alert(error.response?.data?.message || 'Error'); }
+      showNotification('Empresa registrada con éxito');
+    } catch (error) { showNotification(error.response?.data?.message || 'Error', 'error'); }
   };
 
   const handleSubmitUser = async (e) => {
@@ -74,14 +83,16 @@ const AdminView = () => {
     try {
       if (isEditing) {
         await axios.put(`${API_BASE_URL}/api/admin/users/${editingUserId}`, userForm);
+        showNotification('Usuario actualizado con éxito');
       } else {
         await axios.post(`${API_BASE_URL}/api/admin/users`, userForm);
+        showNotification('Usuario registrado con éxito');
       }
       setUserForm({ name: '', rut: '', password: '', companyId: '', role: 'user' });
       setIsEditing(false);
       setEditingUserId(null);
       fetchData();
-    } catch (error) { alert(error.response?.data?.message || 'Error'); }
+    } catch (error) { showNotification(error.response?.data?.message || 'Error', 'error'); }
   };
 
   const handleEditUser = (u) => {
@@ -101,8 +112,8 @@ const AdminView = () => {
   const handleUpdateQR = async () => {
     try {
       await axios.put(`${API_BASE_URL}/api/admin/qr-token`, { value: qrToken });
-      alert('Token de QR actualizado');
-    } catch (error) { alert('Error actualizando token'); }
+      showNotification('Token de QR actualizado');
+    } catch (error) { showNotification('Error actualizando token', 'error'); }
   };
 
   const handleToggleUser = async (u) => {
@@ -111,7 +122,7 @@ const AdminView = () => {
       await axios.put(`${API_BASE_URL}/api/admin/users/${u.id}`, { isActive: u.isActive === false ? true : false });
       await fetchData();
     } catch (error) { 
-      alert('Error al cambiar estado del usuario'); 
+      showNotification('Error al cambiar estado del usuario', 'error'); 
     } finally {
       setTogglingUserId(null);
     }
@@ -135,7 +146,26 @@ const AdminView = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-dark flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-dark flex flex-col lg:flex-row relative">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -50, x: '-50%' }}
+            className={`fixed top-6 left-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border ${
+              notification.type === 'success' 
+                ? 'bg-green-500/10 border-green-500/20 text-green-400' 
+                : 'bg-red-500/10 border-red-500/20 text-red-400'
+            } backdrop-blur-md`}
+          >
+            {notification.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+            <span className="font-bold text-sm tracking-wide">{notification.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Header */}
       <div className="lg:hidden bg-dark-card p-4 flex justify-between items-center border-b border-white/5 z-30">
         <div className="flex items-center gap-3">
@@ -397,6 +427,18 @@ const AdminView = () => {
                             )}
                           </AnimatePresence>
                         </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Rol</label>
+                        <select
+                          className="input-field"
+                          value={userForm.role}
+                          onChange={e => setUserForm({...userForm, role: e.target.value})}
+                          required
+                        >
+                          <option value="user">Usuario</option>
+                          <option value="admin">Administrador</option>
+                        </select>
                       </div>
                       <button type="submit" className="btn-primary w-full py-4">
                         {isEditing ? 'Actualizar Usuario' : 'Enrolar Trabajador'}
